@@ -1,0 +1,17 @@
+import "time"
+
+param consents
+param target_consent
+param DOB default "2019-12-24T00:00:00Z"
+YEAR_IN_SEC = 31556926
+
+print("DOB is ", DOB)
+print("Given consents are ", consents)
+print("Target consents is ", target_consent)
+
+dob_time_unix = time.load(DOB).unix
+current_time_unix = time.now.unix
+is_legal_age = rule { (current_time_unix - dob_time_unix) / YEAR_IN_SEC >= 18 }
+has_consent = rule { consents contains target_consent }
+
+main = rule { is_legal_age and has_consent }

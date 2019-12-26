@@ -1,0 +1,7 @@
+{
+    "param": {
+        "DOB": "1998-04-30T00:00:00Z",
+        "consents": ["data_exchange", "marketing", "analytics"],
+        "target_consent": "data_exchange"
+    }
+}

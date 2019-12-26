@@ -1,0 +1,12 @@
+{
+    "param": {
+        "DOB": "1998-04-30T00:00:00Z",
+        "consents": ["data_exchange", "marketing", "analytics"],
+        "target_consent": "location_selling"
+    },
+    "test": {
+        "main": false,
+        "is_legal_age": true,
+        "has_consent": false
+    }
+}
