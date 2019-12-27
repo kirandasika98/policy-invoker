@@ -2,13 +2,11 @@ package invoker
 
 import (
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
 
-	"github.com/google/uuid"
 	"github.com/kirandasika98/policy-invoker/pkg/policy"
 )
 
@@ -104,8 +102,4 @@ func (pi *sentinelPolicyInvoker) buildPolicyFile(buf []byte) error {
 
 func (pi *sentinelPolicyInvoker) buildSentinelCommand() {
 	pi.cmd = exec.Command(sentinel, apply, config, pi.cfg.Name(), pi.policy.Name())
-}
-
-func getRandomFileName(ext string) string {
-	return fmt.Sprintf("%s%s", uuid.New(), ext)
 }
