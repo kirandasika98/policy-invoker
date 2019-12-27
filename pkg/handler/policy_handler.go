@@ -14,7 +14,8 @@ import (
 
 // PolicyInvokeHandler handles calls to a Invoker
 type PolicyInvokeHandler struct {
-	policyCache map[string][]byte
+	sentinelBinaryPath string
+	policyCache        map[string][]byte
 }
 
 type invokePolicyData struct {
@@ -26,9 +27,10 @@ type invokePolicyErr struct {
 }
 
 // NewPolicyInvokeHandler is a function that returns a new handler for invoking policies
-func NewPolicyInvokeHandler() *PolicyInvokeHandler {
+func NewPolicyInvokeHandler(sentinelBinaryPath string) *PolicyInvokeHandler {
 	return &PolicyInvokeHandler{
-		policyCache: make(map[string][]byte),
+		sentinelBinaryPath: sentinelBinaryPath,
+		policyCache:        make(map[string][]byte),
 	}
 }
 
@@ -72,7 +74,7 @@ func (h *PolicyInvokeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		h.policyCache[policyName] = []byte(p.Policy)
 	}
 
-	invoker, err := invoker.New(p)
+	invoker, err := invoker.NewWithExecutable(h.sentinelBinaryPath, p)
 	if err != nil {
 		glog.Errorf("error while build invoker: %v", err)
 		handleError(w, err)

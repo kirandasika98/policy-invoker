@@ -16,17 +16,36 @@ type Invoker interface {
 }
 
 const (
-	sentinel = "/usr/local/bin/sentinel"
-	apply    = "apply"
-	config   = "-config"
-	trace    = "-trace"
+	defaultSentinel = "/usr/local/bin/sentinel"
+	apply           = "apply"
+	config          = "-config"
+	trace           = "-trace"
 )
 
 // sentinelPolicyInvoker invokes a sentinel policy
 type sentinelPolicyInvoker struct {
-	cfg    *os.File
-	policy *os.File
-	cmd    *exec.Cmd
+	execPath string
+	cfg      *os.File
+	policy   *os.File
+	cmd      *exec.Cmd
+}
+
+func NewWithExecutable(executablePath string, p *policy.SentinelPolicy) (Invoker, error) {
+	if p == nil {
+		return nil, errors.New("invoker: policy cannot be nil")
+	}
+	invoker := &sentinelPolicyInvoker{}
+	if len(p.Cfg) == 0 || len(p.Policy) == 0 {
+		return nil, errors.New("invoker: either configuration or the policy is empty")
+	}
+	// sets the cfg variable
+	invoker.buildConfig([]byte(p.Cfg))
+	// sets the policy variable
+	invoker.buildPolicyFile([]byte(p.Policy))
+	invoker.execPath = executablePath
+	// sets the cmd variable
+	invoker.buildSentinelCommand()
+	return invoker, nil
 }
 
 // New builds a new Invoker
@@ -42,6 +61,7 @@ func New(p *policy.SentinelPolicy) (Invoker, error) {
 	invoker.buildConfig([]byte(p.Cfg))
 	// sets the policy variable
 	invoker.buildPolicyFile([]byte(p.Policy))
+	invoker.execPath = defaultSentinel
 	// sets the cmd variable
 	invoker.buildSentinelCommand()
 	return invoker, nil
@@ -101,5 +121,5 @@ func (pi *sentinelPolicyInvoker) buildPolicyFile(buf []byte) error {
 }
 
 func (pi *sentinelPolicyInvoker) buildSentinelCommand() {
-	pi.cmd = exec.Command(sentinel, apply, config, pi.cfg.Name(), pi.policy.Name())
+	pi.cmd = exec.Command(pi.execPath, apply, config, pi.cfg.Name(), pi.policy.Name())
 }
