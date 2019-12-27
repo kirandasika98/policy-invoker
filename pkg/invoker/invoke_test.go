@@ -29,5 +29,11 @@ func (mi *mockInvoker) Invoke() (int, error) {
 }
 
 func TestInvoke(t *testing.T) {
+	invoker := &mockInvoker{}
+	exitCode, err := invoker.Invoke()
+	if err != nil {
+		log.Fatal(err)
+		t.Fail()
+	}
 
 }

@@ -1,0 +1,6 @@
+param allowances
+param target_allowance
+
+has_allowance = rule { allowances contains target_allowance }
+
+main = rule { has_allowance }

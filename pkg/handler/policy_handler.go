@@ -14,6 +14,7 @@ import (
 
 // PolicyInvokeHandler handles calls to a Invoker
 type PolicyInvokeHandler struct {
+	policyCache map[string][]byte
 }
 
 type invokePolicyData struct {
@@ -26,13 +27,16 @@ type invokePolicyErr struct {
 
 // NewPolicyInvokeHandler is a function that returns a new handler for invoking policies
 func NewPolicyInvokeHandler() *PolicyInvokeHandler {
-	return &PolicyInvokeHandler{}
+	return &PolicyInvokeHandler{
+		policyCache: make(map[string][]byte),
+	}
 }
 
 // ServeHTTP is a function that should be implemented as part of the http.handler
 func (h *PolicyInvokeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	glog.Infof("policy: %s", vars["policy"])
+	policyName := vars["policy"]
+	glog.Infof("policy: %s", policyName)
 	var data invokePolicyData
 	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
 		glog.Errorf("error while decoding json: %v", err)
@@ -40,18 +44,41 @@ func (h *PolicyInvokeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	glog.Infof("cfg: %s", data.Cfg)
-	p, err := policy.NewFromPolicyName(".", vars["policy"]+".sentinel", data.Cfg)
-	if err != nil {
-		glog.Errorf("error while building new policy: %v", err)
-		handleError(w, err)
-		return
+
+	// Building policy based on cache on request
+	var p *policy.SentinelPolicy
+	var err error
+	// build policy based on cache on from name
+	b, ok := h.policyCache[policyName]
+	if !ok {
+		glog.Infof("building policy %s from name and path", policyName)
+		p, err = policy.NewFromPolicyName(".", policyName+".sentinel", data.Cfg)
+		if err != nil {
+			glog.Errorf("error while building new policy: %v", err)
+			handleError(w, err)
+			return
+		}
+	} else {
+		glog.Infof("building policy %s from cached buffer", policyName)
+		p, err = policy.NewSentinelPolicy([]byte(data.Cfg), b)
+		if err != nil {
+			glog.Errorf("error while build policy from cache: %v", err)
+		}
 	}
+
+	// Append to cache
+	if !ok {
+		glog.Infof("appending %s to cache", policyName)
+		h.policyCache[policyName] = []byte(p.Policy)
+	}
+
 	invoker, err := invoker.New(p)
 	if err != nil {
 		glog.Errorf("error while build invoker: %v", err)
 		handleError(w, err)
 		return
 	}
+
 	exitCode, err := invoker.Invoke()
 	if err != nil {
 		glog.Errorf("error while invoking %T policy: %v", p, err)

@@ -1,7 +1,6 @@
 package policy
 
 import (
-	"encoding/json"
 	"errors"
 	"io/ioutil"
 	"path/filepath"
@@ -11,15 +10,6 @@ import (
 type SentinelPolicy struct {
 	Cfg    string `json:"params"`
 	Policy string `json:"policy"`
-}
-
-// NewFromReader builds a SentinelPolicy from a io.Reader
-func NewFromReader(buf []byte) (*SentinelPolicy, error) {
-	p := &SentinelPolicy{}
-	if err := json.Unmarshal(buf, p); err != nil {
-		return nil, err
-	}
-	return p, nil
 }
 
 // NewSentinelPolicy is a function that builds a SentinelPolicy

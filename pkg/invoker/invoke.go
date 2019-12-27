@@ -33,6 +33,9 @@ type sentinelPolicyInvoker struct {
 
 // New builds a new Invoker
 func New(p *policy.SentinelPolicy) (Invoker, error) {
+	if p == nil {
+		return nil, errors.New("invoker: policy cannot be nil")
+	}
 	invoker := &sentinelPolicyInvoker{}
 	if len(p.Cfg) == 0 || len(p.Policy) == 0 {
 		return nil, errors.New("invoker: either configuration or the policy is empty")
