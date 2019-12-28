@@ -18,7 +18,7 @@ var (
 func main() {
 	addr = flag.String("addr", "localhost:9000", "the host:port that the application should run")
 	policiesPath = flag.String("policies-path", ".", "directory where all the policies exist")
-	sentinelBinaryPath = flag.String("sentinel-binary-path", "/usr/local/bin/sentinel", "absoluth path to the sentinel binary")
+	sentinelBinaryPath = flag.String("sentinel-binary-path", "/usr/local/bin/sentinel", "absolute path to the sentinel binary")
 	flag.Parse()
 
 	defer glog.Flush()
